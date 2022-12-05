@@ -1,0 +1,381 @@
+;; https://github.com/kmonad/kmonad
+;; https://www.e-shop.gr/logilink-id0181-illuminated-one-hand-gaming-keyboard-black-p-PER.758597
+
+;; INTRO to kmonad lisp and config
+;; WARNING: Don't use anyone's config without any understanding of kmonad or 
+;; it's configuration. Don't even use mine but use it to understand how it
+;; works
+
+(defcfg                            
+    fallthrough true  
+    allow-cmd   true
+
+    ;; use 'ls /dev/input/by-id/' for detachable keyboards and
+    ;; 'ls /dev/input/by-path/' for builtin keyboards location'
+    input  (device-file "/dev/input/by-id/usb-Gaming_KB_Gaming_KB-event-kbd")
+    output (uinput-sink "LogiLink (Pop OS)")
+    cmp-seq     compose
+    ;; cmp-seq-delay 5
+)
+
+
+;;; -----------------------------------------------------
+;;;                 The original Keyboard
+;;; -----------------------------------------------------
+
+(defsrc
+    esc   f1     f2    f3   f4     f5
+    `     1     2     3     4     5     6
+    tab   q     w     e     r     t
+    caps  a     s     d     f     g
+    lsft  102d  z     x     c     v     b
+    lctl  lalt  spc 
+)
+
+
+;; Window Move to monitor
+(defalias monl M-S-left)
+(defalias monr M-S-right)
+(defalias monu M-S-C-up)
+(defalias mond M-S-C-down)
+
+;; Window move to Workspace
+(defalias winspu M-S-up)
+(defalias winspd M-S-down)
+(defalias spaceu M-C-up)
+(defalias spaced M-C-down)
+
+
+;; Misc (TODO:Only on english, must fix)
+(defalias nbspc #(Compose spc spc))
+(defalias breakvm rctrl) ;; Ungrab VM
+
+;; Monitors
+(defalias mon123 (cmd-button "~/.screenlayout/mon123.sh"))
+(defalias mon12  (cmd-button "~/.screenlayout/mon12.sh"))
+(defalias mon23  (cmd-button "~/.screenlayout/mon23.sh"))
+(defalias mon2   (cmd-button "~/.screenlayout/mon2.sh"))
+
+
+;;; -----------------------------------------------------
+;;;                 DEFAULT LAYULT LA
+;;; -----------------------------------------------------
+
+(deflayer popos
+    esc       @modadj @modtile @modstack @modfloat @modmax
+    @breakvm  @mon2   @mon123  @mon12    @mon23    @aufix  @slock
+    @extra    @quit   @focusu  vold      volu      mute
+    @cmd      @focusl @focusd  @focusr   @cursor   @spaceu      
+    @shifted  undo redo cut copy paste    @spaced
+    @control       @alt     @launcher 
+)
+
+(defalias ctrz C-Z ctry C-y ctrx C-x ctrc C-c ctrv C-v)
+
+;; Switch LAYERS
+(defalias alt     (layer-toggle pop-alt))
+(defalias extra   (layer-toggle pop-extra))
+
+(defalias modtile M-y modstack M-s  modfloat M-g modmax M-m)      ;; Basic Modes
+(defalias focusl M-left focusr M-right focusu M-up focusd M-down ) ;; Window focus
+(defalias aufix #(vold P100 volu P100 vold P100 volu P100 vold P100 volu P100))
+(defalias slock (multi-tap 500 
+    (cmd-button "xdg-screensaver activate") 
+    (cmd-button "xdg-screensaver lock")))
+
+;; Change Cursor on hold and release
+(defalias cursor #((around 
+    (cmd-button "gsettings set org.gnome.desktop.interface cursor-theme gbDMZ")
+    (cmd-button "gsettings set org.gnome.desktop.interface cursor-size 48")
+) (tap-next-release (around 
+    (cmd-button "gsettings set org.gnome.desktop.interface cursor-theme Pop")
+    (cmd-button "gsettings reset org.gnome.desktop.interface cursor-size")
+) XX)))
+
+
+;; Close/Hide  Window (Extra shortcut for Hide Window)
+(defalias quit (multi-tap 500 M-- M-q)) 
+
+;; Launchers
+;; Extra shortcuts on Gnome Keyboard Settings
+;; -> Hide all normal Windows (M-C-d) aka Show Desktop
+(defalias lnc M-/ workspace M-d menu M-a)
+(defalias launcher (multi-tap 300 @lnc @menu ))
+(defalias desktop M-C-d) ;; 
+
+
+;;; -----------------------------------------------------
+;;;                 Pop OS Adjustment Mode
+;;; -----------------------------------------------------
+(defalias modadj  (around M-ret (layer-switch pop-adjust)))
+
+(deflayer pop-adjust
+    @adjEsc XX     XX  XX   XX  XX
+    XX      XX     XX  XX   XX  XX  XX
+    XX      XX     @adjU  XX   XX  XX 
+    XX      @adjL  @adjD  @adjR XX  XX         
+    @adjSize XX    XX  XX   XX  XX  XX
+    @adjSwap XX    @adjRet 
+)
+
+;; Enter with Super-Enter
+;; Return to Normal mode with Esc or Enter
+(defalias adjEsc (around esc (layer-switch popos))) 
+(defalias adjRet (around ret (layer-switch popos)))
+(defalias adjSize lsft adjSwap lctl adjU up adjD down adjL lft adjR rght)
+
+
+;;; -----------------------------------------------------
+;;;                 Pop OS Shift Mode 
+;;; -----------------------------------------------------
+(defalias shifted (layer-toggle pop-shift))
+(defalias night #( 
+    (cmd-button "gsettings set org.gnome.desktop.interface gtk-theme Pop-dark")
+    (cmd-button "gsettings set org.gnome.desktop.interface color-scheme prefer-dark")))    
+
+(deflayer pop-shift
+    _       _      _       _      _     _
+    @nbspc  _      _       _      _     _      _
+    XX      XX   @winspu  XX   XX  XX 
+    XX      XX   @winspd  XX @night  XX       
+    _       _ _ _ _ _  _
+    _       _     @workspace 
+)
+
+
+;;; -----------------------------------------------------
+;;;                 Pop OS Control Mode
+;;; -----------------------------------------------------
+(defalias control (layer-toggle pop-control))
+
+(deflayer pop-control
+    _       _      _       _      _     _
+    _       _      _       _      _     _      _
+    XX      XX    @monu  XX   XX   _
+    XX      @monl  @mond  @monl @day  XX       
+    _       @ctrz   @ctry    @ctrx     @ctrc   @ctrv  XX
+    _       _     @desktop 
+)
+
+(defalias day #( 
+    (cmd-button "gsettings set org.gnome.desktop.interface gtk-theme Pop")
+    (cmd-button "gsettings set org.gnome.desktop.interface color-scheme prefer-light")))
+
+
+(deflayer pop-alt
+    _       _      _       _      _     _
+    _       _      _       _      _     _ _
+    XX      _      _       _      _     _
+    XX      _  _  _ XX  XX       
+    _       _     _     _      _     _      XX
+    _       _     @menu 
+)
+
+(deflayer pop-extra
+    _       _      _       _      _     _
+    _       _      _       _      _     _ _
+    XX      XX    _  XX   XX   _
+    XX      _  _  _ XX  XX       
+    _       _     _     _      _     _      XX
+    _       _     _
+)
+
+
+;;; -----------------------------------------------------
+;;;                 COMMAND LAYER
+;;; -----------------------------------------------------
+
+;; Use sticky key, must compile
+;; sudo apt install haskell-stack
+;; mkdir -p ~/.local/bin; stack build; stack install
+(defalias cmd   (sticky-key  500 (layer-toggle pop-cmd)))
+
+(defalias term  (cmd-button "gnome-terminal"))
+(defalias calc  (cmd-button "gnome-calculator"))
+(defalias monit (cmd-button "gnome-system-monitor"))
+(defalias logs  (cmd-button "gnome-logs"))
+(defalias cockpit  #(x d g - o p e n spc h t t p : / / l o c a l h o s t : 9 0 9 0 ret :delay 5))
+(defalias sudo #(s u d o spc :delay 5))
+(defalias reboot #(@sudo r e b o o t :delay 5 ))
+(defalias topgrade #(@sudo t o p g r a d e ret :delay 5))
+
+(deflayer pop-cmd
+    @reboot XX XX XX XX XX
+    XX      XX XX XX XX XX XX 
+    XX      @cockpit  @logs @monit @calc @term
+    XX      @topgrade XX  XX XX  XX       
+    XX      XX XX XX XX XX XX 
+    XX      XX  @sudo 
+)
+
+
+#|
+<hardware-layout>
+
++---------------------------------------------------------------------------------------------------------+
+| This section defines how to export this standard KMonad file to http://www.keyboard-layout-editor.com/  |
++---------------------------------------------------------------------------------------------------------+
+
+
+!!! Keycap layout and colors
+----------------------------
+
+(keycap 
+ 
+  pop-shift        _             pop-adjust
+  _                popos         _
+  pop-control        _            pop-alt
+  pop-extra        pop-cmd       _ 
+)
+
+(colors
+  #ff0000   #ff0000   #0000ff 
+  #000000   #000000   #000000
+  #ff00ff   #256329   #00ff00
+  #000000   #000000   #2222ff
+)
+
+!!! Options are based on `defsrc` (a.k.a. Layer 0) keys
+-------------------------------------------------------
+
+(options esc {w:1.5})
+(options f1 {x:1.5,w:1.5})
+(options f2 {w:1.5})
+(options f3 {w:1.5})
+(options f4 {w:1.5})
+(options f5 {w:1.5})
+
+(options ` {w:1.5})
+(options 1 {w:1.5})
+(options 2 {w:1.5})
+(options 3 {w:1.5})
+(options 4 {w:1.5})
+(options 5 {w:1.5})
+(options 6 {w:1.5})
+
+(options tab {w:2})
+(options q {w:1.7})
+(options w {w:1.6})
+(options e {w:1.6})
+(options r {w:1.6})
+(options t {w:2})
+
+(options caps {w:2.2})
+(options a {w:1.6})
+(options s {w:1.6})
+(options d {w:1.6})
+(options f {w:1.6})
+(options g {w:1.6})
+
+(options lsft {w:1.5})
+(options 102d {w:1.5})
+(options z {w:1.5})
+(options x {w:1.5})
+(options c {w:1.5})
+(options v {w:1.5})
+(options b {w:1.5})
+
+(options lctl {w:2})
+(options lalt {x:2,w:2})
+(options spc {w:4.3})
+
+
+!!! Override or assign labels
+-----------------------------
+(label @focusu 🠉)
+(label @focusd 🠋)
+(label @focusl 🠈)
+(label @focusr 🠊)
+
+!!! Window Move to monitor
+(label @monl ⎗←)
+(label @monr ⎗→)
+(label @monu ⎗↑)
+(label @mond ⎗↓)
+
+!! Window move to Workspace
+(label @winspu ⇈)
+(label @winspd ⇊)
+
+!! Change Workspace
+(label @spaceu WS🡅)
+(label @spaced WS🡇)
+
+(label @shifted ⇓ Shift)
+(label @control ⮹ Control)
+(label @alt ⎇ Alt ) 
+(label @cmd ⌘ Command )
+(label @extra ⌤ Extra)
+
+
+(label @menu Menu)
+(label @workspace Workspaces)
+(label @desktop Desktop)
+(label @launcher Launcher/Menu)
+
+(label @modadj ⇱ Adjust)
+(label @modtile 🖽 Tiled)
+(label @modstack 🗖 Stack)
+(label @modfloat 🗗 Float)
+(label @modmax 🖵 Max)
+
+(label @adjSwap Swap)
+(label @adjEsc Exit)
+(label @adjRet Apply)
+(label @adjSize Size)
+(label @adjU none)
+(label @adjD none)
+(label @adjL none)
+(label @adjR none)
+
+(label @ctrz ^Z)
+(label @ctry ^Y)
+(label @ctrx ^X)
+(label @ctrc ^C)
+(label @ctrv ^V)
+(label cut Cut ✂️)
+(label copy Copy 📋)
+(label paste Paste ⎘)
+(label undo Undo ↫)
+(label redo Redo ↬)
+
+(label @nbspc 🞎)
+(label @breakvm 🖰VM)
+(label @mon123 🖵🖵🖵)
+(label @mon2  🖵)
+(label @mon12 🖵🖵🗕)
+(label @mon23 🗕🖵🖵)
+(label @aufix 🔊)
+(label @slock 🔒)
+(label @quit  🗕 / 💡)
+(label @cursor 👀)
+
+(label @term 🖵Term)
+(label @day ☀ Day)
+(label @night 🌗 Night )
+
+!!! Add some notes
+------------------
+
+(description
+    Red: ⇓Shift        Blue: ⮹Control
+            Black: popOS,         
+    Magenta: ⇱Adjust    Green: 🞙Alt
+)
+
+</hardware-layout>
+|#
+
+(defalias
+  ;; some unicode characters need to be defined in ~/.XCompose
+  ;; (if you use Windows, you have to define something like this in WinCompose)
+  ✔  #(Compose y y)  ;; heavy checkmark (✔)
+  ✘  #(ralt n n)  ;; heavy ballot (✘)
+  ⭐ #(rctl s t)  ;; star (⭐)
+  ¹  #(Compose S-6 1) 
+  ²  #(Compose S-6 2)
+  ³  #(Compose S-6 3)
+  ⁴  #(Compose S-6 4)
+  ⁵  #(Compose S-6 5)
+  ⁶  #(Compose S-6 6)
+)

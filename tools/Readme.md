@@ -1,0 +1,1 @@
+Paste the code to: http://www.keyboard-layout-editor.com/#/

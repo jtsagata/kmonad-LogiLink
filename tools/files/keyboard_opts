@@ -1,0 +1,6 @@
+XKBLAYOUT="us,gr"
+BACKSPACE="guess"
+XKBVARIANT=","
+XKBMODEL="sun_type6_unix_usb"
+XKBOPTIONS="grp:rwin_toggle,lv3:ralt_switch,compose:menu,terminate:ctrl_alt_bksp,grp_led:scroll"
+
