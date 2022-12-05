@@ -1,0 +1,17 @@
+#!/bin/bash
+
+layout=${1:-default}
+layout=~/.config/macro_keyboard/layouts/${layout}.kbd
+
+# Systemd Handles this
+# process_id=$(pgrep --euid "$EUID" kmonad )
+# if [[ "$process_id" != "" ]]; then
+#     kill "$process_id"
+# fi
+
+if ~/.local/bin/kmonad $layout -d ; then
+    ~/.local/bin/kmonad $layout
+    echo "*** Terminated"
+else
+    echo "ERROR in keyboard configuration"
+fi
