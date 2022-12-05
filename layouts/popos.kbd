@@ -1,10 +1,5 @@
-;; https://github.com/kmonad/kmonad
-;; https://www.e-shop.gr/logilink-id0181-illuminated-one-hand-gaming-keyboard-black-p-PER.758597
-
-;; INTRO to kmonad lisp and config
-;; WARNING: Don't use anyone's config without any understanding of kmonad or 
-;; it's configuration. Don't even use mine but use it to understand how it
-;; works
+;; IMPORTANT: Name your input device bellow. 
+;; MACRO_DEVICE: /dev/input/by-id/usb-Gaming_KB_Gaming_KB-event-kbd
 
 (defcfg                            
     fallthrough true  
