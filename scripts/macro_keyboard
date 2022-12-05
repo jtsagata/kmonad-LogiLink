@@ -12,25 +12,14 @@ input_device=$(grep "MACRO_DEVICE:" $layout | cut -f3 -d" ")
 device_usages=$(fuser $input_device 2> /dev/null)
 for pid in $device_usages; do
     if grep -q kmonad /proc/$pid/cmdline; then
-        kmonad is using this device
-        systemd_unit=$(systemctl --user status -n0 $pid 2>/dev/null | head -n1 | awk '{print $2}')
-        is_active=$(systemctl --user is-active $systemd_unit)
-        echo $is_active
-        if [ ! -z "$systemd_unit" ]; then
-            # The kmonad start from systemd
-            echo "kill kill kill systemd $pid"
-            systemctl --user stop $systemd_unit
-        else
-            echo "kill kill kill $pid"
-            kill $pid
-        fi
+        kill $pid
     fi
 done
 
 
 if ~/.local/bin/kmonad $layout -d ; then
     ~/.local/bin/kmonad $layout
-    echo "*** Terminated"
+    echo "Terminated"
 else
     echo "ERROR in keyboard configuration"
 fi
